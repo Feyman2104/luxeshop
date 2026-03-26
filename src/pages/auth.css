@@ -1,0 +1,341 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ===================== RESET & VARIABLES ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-deep:     #0d0d0f;
+  --bg-card:     #13131a;
+  --bg-input:    #1a1a24;
+  --border:      #2a2a3a;
+  --border-focus:#c9a96e;
+  --text-primary:#f0ede8;
+  --text-muted:  #7a7a9a;
+  --text-hint:   #5a5a75;
+  --accent:      #c9a96e;
+  --accent-dark: #a8853d;
+  --error:       #e05a6a;
+  --success:     #4ecb8a;
+  --weak:        #e05a6a;
+  --medium:      #f0a050;
+  --good:        #a0c050;
+  --strong:      #4ecb8a;
+  --radius:      12px;
+  --radius-sm:   8px;
+  --shadow:      0 24px 60px rgba(0,0,0,0.6);
+}
+
+/* ===================== BACKGROUND ===================== */
+.auth-bg {
+  min-height: 100vh;
+  background: var(--bg-deep);
+  background-image:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(201,169,110,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 80%, rgba(100,80,180,0.06) 0%, transparent 60%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ===================== CARD ===================== */
+.auth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow);
+  animation: slideUp 0.4s ease;
+}
+
+.auth-card-wide {
+  max-width: 520px;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================== BRAND ===================== */
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.brand-icon { font-size: 1.6rem; }
+
+.brand-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 4px;
+}
+
+.brand-name span { color: var(--accent); }
+
+.auth-icon-header {
+  text-align: center;
+  font-size: 2.5rem;
+  margin: 0.5rem 0;
+}
+
+.auth-subtitle {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+.auth-hint {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-hint);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* ===================== FIELDS ===================== */
+.field-group {
+  margin-bottom: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field-group label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.field-group input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  width: 100%;
+}
+
+.field-group input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(201,169,110,0.12);
+}
+
+.field-group input.input-error {
+  border-color: var(--error);
+}
+
+.field-group input::placeholder { color: var(--text-hint); }
+
+.fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.field-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+/* ===================== MESSAGES ===================== */
+.error-msg {
+  font-size: 0.78rem;
+  color: var(--error);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.error-msg::before { content: '⚠ '; }
+
+.success-inline {
+  font-size: 0.78rem;
+  color: var(--success);
+}
+
+/* ===================== PASSWORD STRENGTH ===================== */
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.strength-bars {
+  display: flex;
+  gap: 4px;
+}
+
+.bar {
+  width: 30px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background 0.3s;
+}
+
+.bar.weak   { background: var(--weak); }
+.bar.medium { background: var(--medium); }
+.bar.good   { background: var(--good); }
+.bar.strong { background: var(--strong); }
+
+.strength-label { font-weight: 600; color: var(--text-primary); }
+
+/* ===================== BUTTONS ===================== */
+.btn-primary {
+  width: 100%;
+  padding: 0.85rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #0d0d0f;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 0.5rem;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-primary:hover  { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-block { display: block; }
+
+/* ===================== LINKS ===================== */
+.link-accent {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+.link-accent:hover { opacity: 0.8; text-decoration: underline; }
+
+.link-subtle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.link-subtle:hover { color: var(--accent); }
+
+/* ===================== FOOTER ===================== */
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ===================== SUCCESS STATE ===================== */
+.success-state {
+  text-align: center;
+  padding: 1rem 0;
+}
+.success-icon { font-size: 3rem; margin-bottom: 1rem; }
+.success-state h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+.success-state p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* ===================== MODAL ===================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-focus);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 380px;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.2rem;
+}
+
+.modal-icon { font-size: 1.5rem; }
+
+.modal-header h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.modal-body {
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.modal-field {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+.modal-field:last-child { border-bottom: none; padding-bottom: 0; }
+.modal-field span { color: var(--text-muted); }
+.modal-field strong { color: var(--text-primary); }
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 480px) {
+  .auth-card, .auth-card-wide { padding: 2rem 1.2rem; }
+  .fields-row { grid-template-columns: 1fr; }
+}
