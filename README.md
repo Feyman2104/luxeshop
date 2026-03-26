@@ -14,7 +14,7 @@
 
 | Nombre | Rol | GitHub |
 |--------|-----|--------|
-| FEYMAN EDUARDO JOYA SERNA | Desarrollador Full-Stack | [@usuario](https://github.com/usuario) |
+| FEYMAN EDUARDO JOYA SERNA | Desarrollador Full-Stack | [@Feyman2104](https://github.com/Feyman2104/luxeshop/tree/main) |
 
 ---
 
