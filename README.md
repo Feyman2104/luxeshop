@@ -82,4 +82,4 @@ luxeshop/
 
 ## 🔗 Repositorio
 
-[https://github.com/tu-usuario/luxeshop](https://github.com/tu-usuario/luxeshop)
+[https://github.com/Feyman2104/luxeshop](https://github.com/Feyman2104/luxeshop)
