@@ -57,46 +57,49 @@
   }
 }
 
-/* === BACKGROUND — imagen real de fondo === */
+/* === BACKGROUND — ocupa exactamente el viewport disponible === */
 .auth-bg {
-  min-height: 100vh;
-  min-height: 100dvh;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
   background-color: var(--bg-deep);
   background-image: url('/fondo.jpg');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-attachment: local;          /* se mueve con el scroll del contenido */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem;
-  padding-top: calc(1.25rem + env(safe-area-inset-top));
-  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  padding: clamp(0.75rem, 3vw, 1.5rem);
+  padding-top: calc(clamp(0.75rem, 3vw, 1.5rem) + env(safe-area-inset-top));
+  padding-bottom: calc(clamp(0.75rem, 3vw, 1.5rem) + env(safe-area-inset-bottom));
   font-family: 'DM Sans', system-ui, sans-serif;
 }
 
-/* === CARD — Glassmorphism (ui-ux-pro-max: blur-purpose, effects-match-style) === */
+/* === CARD — se adapta al espacio disponible === */
 .auth-card {
-  /* Glass: fondo semitransparente oscuro-verdoso + blur */
   background: rgba(15, 22, 8, 0.58);
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
   border: 1px solid rgba(255,255,255,0.13);
   border-left: 3px solid var(--accent);
   border-radius: 16px;
-  padding: 2.75rem 2.25rem;
-  width: 100%;
-  max-width: 420px;
-  /* inset top line sutil (highlight glassmorphism) */
+  padding: 1.75rem 1.75rem 1.5rem;
+  width: min(420px, calc(100vw - 2rem));
   box-shadow:
     0 8px 40px rgba(0,0,0,0.55),
     inset 0 1px 0 rgba(255,255,255,0.10);
   animation: slideUp var(--transition-slow) both;
   position: relative;
+  overflow: visible;
 }
 
-.auth-card-wide { max-width: 520px; }
+.auth-card-wide {
+  width: min(420px, calc(100vw - 2rem));
+  padding: 1.75rem 1.75rem 1.5rem;
+}
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(24px); }
@@ -107,9 +110,11 @@
 .auth-brand {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
+  gap: 0.75rem;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .brand-icon {
@@ -135,17 +140,20 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* ui-ux-pro-max: weight-hierarchy, letter-spacing */
 .brand-name {
   font-family: 'Bebas Neue', 'Oswald', sans-serif;
-  font-size: 2rem;
+  font-size: clamp(1rem, 3vw, 1.6rem);
   font-weight: 400;
   color: var(--text-primary);
-  letter-spacing: 5px;
+  letter-spacing: clamp(1px, 0.4vw, 3px);
   text-transform: uppercase;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .brand-name span { color: var(--accent); }
@@ -184,7 +192,7 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .auth-hint {
@@ -198,10 +206,10 @@
 
 /* === FORM FIELDS (ui-ux-pro-max: input-labels, touch-friendly-input) === */
 .field-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.9rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .field-group label {
@@ -431,7 +439,7 @@
 /* === FOOTER === */
 .auth-footer {
   text-align: center;
-  margin-top: 1.5rem;
+  margin-top: 0.9rem;
   font-size: 0.85rem;
   color: var(--text-muted);
 }
@@ -474,10 +482,13 @@
   line-height: 1.6;
 }
 
-/* === MODAL — Glassmorphism más intenso (ui-ux-pro-max: blur-purpose, modal-motion) === */
+/* === MODAL — se adapta al espacio disponible === */
 .modal-overlay {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   background: rgba(0,0,0,0.52);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -486,7 +497,8 @@
   justify-content: center;
   z-index: 1000;
   animation: fadeIn var(--transition-fast) ease;
-  padding: 1rem;
+  padding: clamp(0.75rem, 3vw, 1.5rem);
+  overflow-y: auto;
 }
 
 @keyframes fadeIn {
@@ -494,21 +506,35 @@
   to   { opacity: 1; }
 }
 
-/* Frosted glass claro (referencia imagen 2) */
+/* Frosted glass — 80dvh, sin scroll */
 .modal-box {
   background: rgba(255,255,255,0.11);
   backdrop-filter: blur(32px) saturate(180%);
   -webkit-backdrop-filter: blur(32px) saturate(180%);
   border: 1px solid rgba(255,255,255,0.22);
   border-radius: 20px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 380px;
+  padding: 1.25rem 1.5rem;
+  width: min(360px, calc(100vw - 2rem));
+  max-height: min(300px, 80dvh);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   box-shadow:
     0 16px 48px rgba(0,0,0,0.55),
     inset 0 1px 0 rgba(255,255,255,0.18);
   animation: slideUp var(--transition-base) ease;
 }
+
+/* El body del modal ocupa el espacio disponible y recorta si hay mucho contenido */
+.modal-box .modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.modal-box .modal-header { flex-shrink: 0; margin-bottom: 0; }
+.modal-box .btn-primary  { flex-shrink: 0; margin-top: 0; }
 
 .modal-header {
   display: flex;
@@ -571,7 +597,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 1.5rem 0;
+  margin: 0.9rem 0;
 }
 
 .auth-divider::before,
@@ -589,47 +615,42 @@
   letter-spacing: 1px;
 }
 
-/* === SOCIAL BUTTONS — Glass (ui-ux-pro-max: touch-target-size, nav-label-icon) === */
+/* === SOCIAL BUTTONS — Iconos centrados en fila === */
 .social-buttons {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 0.25rem;
 }
 
 .btn-social {
-  width: 100%;
-  height: 48px;                          /* ui-ux-pro-max: touch-target-size 44pt+ */
-  padding: 0 1rem;
+  width: 64px;
+  height: 64px;
+  padding: 0;
   background: rgba(255,255,255,0.07);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.875rem;
+  justify-content: center;
+  flex-shrink: 0;
   transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
   text-decoration: none;
 }
 
 .btn-social:hover {
-  background: rgba(255,255,255,0.13);
-  border-color: rgba(255,255,255,0.22);
-  transform: translateY(-1px);
+  background: rgba(255,255,255,0.14);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3), 0 0 0 1px var(--accent);
 }
 
-/* ui-ux-pro-max: state-clarity por proveedor */
-.btn-social-google:hover   { border-color: rgba(66,133,244,0.45); }
-.btn-social-facebook:hover { border-color: rgba(24,119,242,0.45); }
-.btn-social-github:hover   { border-color: rgba(122,184,48,0.45); }
 
-.btn-social:active { transform: translateY(0); }
+.btn-social:active { transform: translateY(0); box-shadow: none; }
 
 .btn-social:focus-visible {
   outline: 2px solid var(--accent);
@@ -643,11 +664,10 @@
 }
 
 .btn-social-icon {
-  width: 20px; height: 20px;
+  width: 30px; height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
 .btn-social-icon svg { width: 100%; height: 100%; }
@@ -656,12 +676,8 @@
 .btn-social-facebook .btn-social-icon svg { fill: #1877F2; }
 .btn-social-github  .btn-social-icon svg { fill: #e8f0e0; }
 
-.btn-social-label {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  flex: 1;
-  text-align: left;
-}
+/* Ocultar label — solo iconos */
+.btn-social-label { display: none; }
 
 .btn-social .spinner {
   width: 20px; height: 20px;
@@ -694,18 +710,77 @@
 }
 
 /* === RESPONSIVE (ui-ux-pro-max: mobile-first, breakpoint-consistency) === */
+
+/* Móvil < 480px */
 @media (max-width: 480px) {
-  .auth-card, .auth-card-wide {
-    padding: 2rem 1.25rem;
-    border-radius: 12px;
-    border-left-width: 3px;
+  .auth-bg {
+    padding: 0.75rem;
+    align-items: center;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   }
 
-  .brand-name { font-size: 1.7rem; letter-spacing: 4px; }
+  .auth-card, .auth-card-wide {
+    padding: 1.25rem 1rem 1rem;
+    border-radius: 12px;
+    width: calc(100vw - 1.5rem);
+  }
 
-  .fields-row { grid-template-columns: 1fr; }
+  .brand-icon { width: 36px; height: 36px; }
+  .brand-icon svg { width: 20px; height: 20px; }
+  .brand-tagline { font-size: 0.58rem; letter-spacing: 1.5px; }
 
-  .field-group input, .btn-primary, .btn-social { min-height: 52px; }
+  .auth-subtitle { font-size: 0.88rem; letter-spacing: 1.5px; margin-bottom: 0.75rem; }
+  .auth-hint { font-size: 0.8rem; margin-bottom: 1rem; }
 
-  .social-buttons { gap: 0.6rem; }
+  .fields-row { grid-template-columns: 1fr; gap: 0; }
+
+  .field-group { margin-bottom: 0.7rem; }
+  .field-group input { min-height: 46px; font-size: 0.95rem; }
+
+  .btn-primary { min-height: 48px; font-size: 0.9rem; }
+
+  .btn-social { width: 56px; height: 56px; }
+  .btn-social-icon { width: 26px; height: 26px; }
+  .social-buttons { gap: 1rem; }
+
+  .auth-footer { margin-top: 0.75rem; font-size: 0.8rem; }
+  .auth-divider { margin: 0.7rem 0; }
+  .password-strength { font-size: 0.72rem; margin-bottom: 0.6rem; }
+}
+
+/* Móvil 480–640px — register pasa a columna única */
+@media (min-width: 480px) and (max-width: 640px) {
+  .auth-card, .auth-card-wide {
+    padding: 1.5rem 1.25rem 1.25rem;
+    width: calc(100vw - 2rem);
+  }
+
+  .fields-row { grid-template-columns: 1fr; gap: 0; }
+  .field-group { margin-bottom: 0.8rem; }
+}
+
+/* Tablet 640–1024px */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .auth-card     { width: min(420px, calc(100vw - 2rem)); }
+  .auth-card-wide { width: min(500px, calc(100vw - 2rem)); }
+}
+
+/* Landscape móvil — compactar verticalmente */
+@media (max-height: 560px) and (orientation: landscape) {
+  .auth-bg {
+    align-items: flex-start;
+    padding-top: 0.75rem;
+  }
+
+  .auth-card, .auth-card-wide {
+    padding: 1rem 1.5rem;
+  }
+
+  .auth-brand { margin-bottom: 0.4rem; }
+  .auth-subtitle { margin-bottom: 0.5rem; }
+  .field-group { margin-bottom: 0.55rem; }
+  .auth-divider { margin: 0.5rem 0; }
+  .auth-footer { margin-top: 0.5rem; }
+  .password-strength { margin-bottom: 0.5rem; }
 }
