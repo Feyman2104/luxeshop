@@ -18,8 +18,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+const facebookProvider = new FacebookAuthProvider();
+facebookProvider.setCustomParameters({ auth_type: 'reauthenticate', display: 'popup' });
+
+const githubProvider = new GithubAuthProvider();
+githubProvider.setCustomParameters({ allow_signup: 'true' });
+
 export const providers = {
-  google:   new GoogleAuthProvider(),
-  facebook: new FacebookAuthProvider(),
-  github:   new GithubAuthProvider(),
+  google:   googleProvider,
+  facebook: facebookProvider,
+  github:   githubProvider,
 };

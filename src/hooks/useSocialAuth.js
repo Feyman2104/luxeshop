@@ -4,20 +4,17 @@ import { auth, providers } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 
 export function useSocialAuth() {
-  const { error, clearError, setError, setLoading } = useAuth();
+  const { error, clearError, setError } = useAuth();
 
   const signInWithProvider = useCallback(async (providerId) => {
     clearError();
     const provider = providers[providerId];
     if (!provider) throw new Error(`Proveedor "${providerId}" no soportado`);
 
-    setLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
-      setLoading(false);
       return result.user;
     } catch (err) {
-      setLoading(false);
       const msg =
         err.code === 'auth/popup-closed-by-user'
           ? 'Inicio cancelado.'
@@ -33,7 +30,7 @@ export function useSocialAuth() {
       setError(msg);
       throw err;
     }
-  }, [clearError, setError, setLoading]);
+  }, [clearError, setError]);
 
   return { signInWithProvider, error, clearError };
 }
