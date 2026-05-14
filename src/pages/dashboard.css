@@ -1,0 +1,85 @@
+.dashboard-card {
+  text-align: center;
+}
+
+.user-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.user-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-glow), 0 8px 24px rgba(0, 0, 0, 0.4);
+  object-fit: cover;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.user-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', 'Oswald', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 1px;
+  color: var(--accent);
+  background: rgba(122, 184, 48, 0.12);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.user-name {
+  margin: 0;
+  font-family: 'Bebas Neue', 'Oswald', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+}
+
+.user-email {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.user-provider {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-hint);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-provider strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dashboard-card .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.dashboard-card .btn-primary svg {
+  width: 18px;
+  height: 18px;
+}

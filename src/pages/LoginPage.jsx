@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSocialAuth } from '../hooks/useSocialAuth';
 import { useAuth } from '../context/AuthContext';
@@ -52,11 +52,15 @@ const GitHubIcon = () => (
 export default function LoginPage() {
   const navigate = useNavigate();
   const { signInWithProvider, error, clearError } = useSocialAuth();
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
   const [socialLoading, setSocialLoading] = useState(null);
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [modal, setModal] = useState(false);
+
+  useEffect(() => {
+    if (user) navigate('/dashboard', { replace: true });
+  }, [user, navigate]);
 
   const validate = () => {
     const e = {};
@@ -76,11 +80,7 @@ export default function LoginPage() {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setModal(true);
-    }, 600);
+    setModal(true);
   };
 
   const handleSocialSignIn = async (providerId) => {
@@ -88,6 +88,7 @@ export default function LoginPage() {
     setSocialLoading(providerId);
     try {
       await signInWithProvider(providerId);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error(`${providerId} sign-in failed:`, err.message);
     } finally {

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSocialAuth } from '../hooks/useSocialAuth';
 import { useAuth } from '../context/AuthContext';
 import './auth.css';
@@ -50,12 +50,17 @@ const GitHubIcon = () => (
 );
 
 export default function RegisterPage() {
+  const navigate = useNavigate();
   const { signInWithProvider, error, clearError } = useSocialAuth();
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
   const [socialLoading, setSocialLoading] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [errors, setErrors] = useState({});
   const [modal, setModal] = useState(false);
+
+  useEffect(() => {
+    if (user) navigate('/dashboard', { replace: true });
+  }, [user, navigate]);
 
   const validate = () => {
     const e = {};
@@ -78,11 +83,7 @@ export default function RegisterPage() {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setModal(true);
-    }, 600);
+    setModal(true);
   };
 
   const handleSocialSignIn = async (providerId) => {
@@ -90,6 +91,7 @@ export default function RegisterPage() {
     setSocialLoading(providerId);
     try {
       await signInWithProvider(providerId);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error(`${providerId} sign-in failed:`, err.message);
     } finally {
