@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSocialAuth } from '../hooks/useSocialAuth';
 import { useAuth } from '../context/AuthContext';
 import './auth.css';
 
-const ShoppingBagIcon = () => (
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-    <line x1="3" y1="6" x2="21" y2="6" />
-    <path d="M16 10a4 4 0 01-8 0" />
+const DumbbellIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="10" width="3" height="4" rx="1" fill="currentColor"/>
+    <rect x="5" y="8"  width="3" height="8" rx="1" fill="currentColor"/>
+    <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" strokeWidth="2"/>
+    <rect x="16" y="8"  width="3" height="8" rx="1" fill="currentColor"/>
+    <rect x="19" y="10" width="3" height="4" rx="1" fill="currentColor"/>
   </svg>
 );
 
@@ -48,12 +50,17 @@ const GitHubIcon = () => (
 );
 
 export default function RegisterPage() {
+  const navigate = useNavigate();
   const { signInWithProvider, error, clearError } = useSocialAuth();
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
   const [socialLoading, setSocialLoading] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [errors, setErrors] = useState({});
   const [modal, setModal] = useState(false);
+
+  useEffect(() => {
+    if (user) navigate('/dashboard', { replace: true });
+  }, [user, navigate]);
 
   const validate = () => {
     const e = {};
@@ -76,11 +83,7 @@ export default function RegisterPage() {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setModal(true);
-    }, 600);
+    setModal(true);
   };
 
   const handleSocialSignIn = async (providerId) => {
@@ -88,6 +91,7 @@ export default function RegisterPage() {
     setSocialLoading(providerId);
     try {
       await signInWithProvider(providerId);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error(`${providerId} sign-in failed:`, err.message);
     } finally {
@@ -100,9 +104,12 @@ export default function RegisterPage() {
       <div className="auth-card auth-card-wide" role="main">
         <div className="auth-brand">
           <div className="brand-icon" aria-hidden="true">
-            <ShoppingBagIcon />
+            <DumbbellIcon />
           </div>
-          <h1 className="brand-name">LUXE<span>SHOP</span></h1>
+          <div className="brand-text">
+            <h1 className="brand-name">Tu Mejor Versión <span>Shop</span></h1>
+            <p className="brand-tagline">Suplementos &amp; Ropa Deportiva</p>
+          </div>
         </div>
         <p className="auth-subtitle">Crea tu cuenta</p>
 
@@ -215,6 +222,7 @@ export default function RegisterPage() {
             aria-label="Registrarse con Google"
           >
             {socialLoading === 'google' ? <span className="spinner" /> : <span className="btn-social-icon" aria-hidden="true"><GoogleIcon /></span>}
+            <span className="btn-social-label">Continuar con Google</span>
           </button>
 
           <button
@@ -225,6 +233,7 @@ export default function RegisterPage() {
             aria-label="Registrarse con Facebook"
           >
             {socialLoading === 'facebook' ? <span className="spinner" /> : <span className="btn-social-icon" aria-hidden="true"><FacebookIcon /></span>}
+            <span className="btn-social-label">Continuar con Facebook</span>
           </button>
 
           <button
@@ -235,6 +244,7 @@ export default function RegisterPage() {
             aria-label="Registrarse con GitHub"
           >
             {socialLoading === 'github' ? <span className="spinner" /> : <span className="btn-social-icon" aria-hidden="true"><GitHubIcon /></span>}
+            <span className="btn-social-label">Continuar con GitHub</span>
           </button>
         </div>
 

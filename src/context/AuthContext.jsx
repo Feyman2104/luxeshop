@@ -1,23 +1,26 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { onAuthStateChanged, signOut as fbSignOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const signIn = useCallback((provider, userData) => {
-    setUser({ provider, ...userData, timestamp: Date.now() });
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (fbUser) => {
+      setUser(fbUser);
+      setLoading(false);
+    });
+    return unsub;
   }, []);
 
-  const signOut = useCallback(() => {
+  const signOutUser = useCallback(async () => {
+    await fbSignOut(auth);
     setUser(null);
     setError(null);
-  }, []);
-
-  const setLoadingState = useCallback((isLoading) => {
-    setLoading(isLoading);
   }, []);
 
   const setErrorState = useCallback((err) => {
@@ -25,20 +28,17 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
+  const clearError = useCallback(() => setError(null), []);
 
   const value = {
     user,
     loading,
     error,
-    signIn,
-    signOut,
-    setLoading: setLoadingState,
+    isAuthenticated: !!user,
+    signOut: signOutUser,
+    setLoading,
     setError: setErrorState,
     clearError,
-    isAuthenticated: !!user,
   };
 
   return (
@@ -49,9 +49,7 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  return ctx;
 }

@@ -1,105 +1,39 @@
-import { useCallback, useMemo } from 'react';
-import { useGoogleAuth } from './useGoogleAuth';
-import { useFacebookAuth } from './useFacebookAuth';
-import { useGitHubAuth } from './useGitHubAuth';
+import { useCallback } from 'react';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, providers } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 
 export function useSocialAuth() {
-  const { loading, error, clearError } = useAuth();
+  const { error, clearError, setError, setLoading } = useAuth();
 
-  const googleAuth = useGoogleAuth();
-  const facebookAuth = useFacebookAuth();
-  const githubAuth = useGitHubAuth();
-
-  const signInWithProvider = useCallback(async (provider) => {
+  const signInWithProvider = useCallback(async (providerId) => {
     clearError();
+    const provider = providers[providerId];
+    if (!provider) throw new Error(`Proveedor "${providerId}" no soportado`);
 
+    setLoading(true);
     try {
-      switch (provider) {
-        case 'google':
-          return await googleAuth.signInWithPopup();
-        case 'facebook':
-          return await facebookAuth.signInWithPopup();
-        case 'github':
-          return await githubAuth.signInWithPopup();
-        default:
-          throw new Error(`Proveedor "${provider}" no soportado`);
-      }
+      const result = await signInWithPopup(auth, provider);
+      setLoading(false);
+      return result.user;
     } catch (err) {
+      setLoading(false);
+      const msg =
+        err.code === 'auth/popup-closed-by-user'
+          ? 'Inicio cancelado.'
+        : err.code === 'auth/cancelled-popup-request'
+          ? 'Solicitud cancelada.'
+        : err.code === 'auth/popup-blocked'
+          ? 'El navegador bloqueó la ventana emergente. Permítela e inténtalo de nuevo.'
+        : err.code === 'auth/account-exists-with-different-credential'
+          ? 'Esa cuenta ya está vinculada a otro proveedor.'
+        : err.code === 'auth/network-request-failed'
+          ? 'Error de red. Verifica tu conexión.'
+        : err.message;
+      setError(msg);
       throw err;
     }
-  }, [googleAuth, facebookAuth, githubAuth, clearError]);
+  }, [clearError, setError, setLoading]);
 
-  const signInWithRedirect = useCallback((provider) => {
-    switch (provider) {
-      case 'google':
-        googleAuth.signInWithRedirect();
-        break;
-      case 'facebook':
-        facebookAuth.signInWithRedirect();
-        break;
-      case 'github':
-        githubAuth.signInWithRedirect();
-        break;
-      default:
-        throw new Error(`Proveedor "${provider}" no soportado`);
-    }
-  }, [googleAuth, facebookAuth, githubAuth]);
-
-  const handleCallback = useCallback(async (provider, code, state) => {
-    switch (provider) {
-      case 'google':
-        return await googleAuth.handleCallback(code, state);
-      case 'facebook':
-        return await facebookAuth.handleCallback(code, state);
-      case 'github':
-        return await githubAuth.handleCallback(code, state);
-      default:
-        throw new Error(`Proveedor "${provider}" no soportado`);
-    }
-  }, [googleAuth, facebookAuth, githubAuth]);
-
-  const signOut = useCallback(() => {
-    googleAuth.signOut();
-    facebookAuth.signOut();
-    githubAuth.signOut();
-  }, [googleAuth, facebookAuth, githubAuth]);
-
-  const providers = useMemo(() => [
-    {
-      id: 'google',
-      name: 'Google',
-      icon: 'google',
-      color: '#4285F4',
-      lightColor: '#fff',
-      darkColor: '#1a1a24',
-    },
-    {
-      id: 'facebook',
-      name: 'Facebook',
-      icon: 'facebook',
-      color: '#1877F2',
-      lightColor: '#fff',
-      darkColor: '#1a1a24',
-    },
-    {
-      id: 'github',
-      name: 'GitHub',
-      icon: 'github',
-      color: '#333333',
-      lightColor: '#fff',
-      darkColor: '#f0ede8',
-    },
-  ], []);
-
-  return {
-    providers,
-    signInWithProvider,
-    signInWithRedirect,
-    handleCallback,
-    signOut,
-    isLoading: loading,
-    error,
-    clearError,
-  };
+  return { signInWithProvider, error, clearError };
 }
