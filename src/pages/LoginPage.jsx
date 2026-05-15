@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../lib/firebase';
+import { startSession } from '../lib/sessions';
 import { useSocialAuth } from '../hooks/useSocialAuth';
 import { useAuth } from '../context/AuthContext';
 import './auth.css';
@@ -49,14 +52,31 @@ const GitHubIcon = () => (
   </svg>
 );
 
+const mapAuthError = (code) => {
+  switch (code) {
+    case 'auth/invalid-email':       return 'Formato de correo inválido.';
+    case 'auth/user-disabled':       return 'Esta cuenta fue deshabilitada.';
+    case 'auth/user-not-found':      return 'No existe un usuario con ese correo.';
+    case 'auth/wrong-password':      return 'Contraseña incorrecta.';
+    case 'auth/invalid-credential':  return 'Credenciales inválidas.';
+    case 'auth/too-many-requests':   return 'Demasiados intentos. Intenta más tarde.';
+    case 'auth/network-request-failed': return 'Error de red. Revisa tu conexión.';
+    default: return 'No se pudo iniciar sesión. Inténtalo de nuevo.';
+  }
+};
+
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { signInWithProvider, error, clearError } = useSocialAuth();
+  const { signInWithProvider, error: socialError, clearError } = useSocialAuth();
   const { loading, user } = useAuth();
   const [socialLoading, setSocialLoading] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [modal, setModal] = useState(false);
+
+  const error = authError || socialError;
 
   useEffect(() => {
     if (user) navigate('/dashboard', { replace: true });
@@ -76,18 +96,31 @@ export default function LoginPage() {
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setAuthError('');
+    clearError();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setModal(true);
+    setSubmitting(true);
+    try {
+      const cred = await signInWithEmailAndPassword(auth, form.email, form.password);
+      await startSession(cred.user, 'password');
+      setModal(true);
+    } catch (err) {
+      setAuthError(mapAuthError(err.code));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSocialSignIn = async (providerId) => {
+    setAuthError('');
     clearError();
     setSocialLoading(providerId);
     try {
-      await signInWithProvider(providerId);
+      const u = await signInWithProvider(providerId);
+      await startSession(u, providerId);
       navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error(`${providerId} sign-in failed:`, err.message);
@@ -154,9 +187,9 @@ export default function LoginPage() {
             <Link to="/forgot-password" className="link-subtle">¿Olvidaste tu contraseña?</Link>
           </div>
 
-          <button type="submit" className="btn-primary" disabled={loading || socialLoading !== null}>
-            {loading ? <span className="spinner" aria-hidden="true" /> : null}
-            {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+          <button type="submit" className="btn-primary" disabled={submitting || loading || socialLoading !== null}>
+            {submitting ? <span className="spinner" aria-hidden="true" /> : null}
+            {submitting ? 'Iniciando sesión...' : 'Iniciar sesión'}
           </button>
         </form>
 
@@ -209,14 +242,14 @@ export default function LoginPage() {
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-icon" aria-hidden="true"><CheckIcon /></div>
-              <h3 id="modal-title">Datos del formulario</h3>
+              <h3 id="modal-title">¡Bienvenido!</h3>
             </div>
             <div className="modal-body">
               <div className="modal-field"><span>Email:</span> <strong>{form.email}</strong></div>
-              <div className="modal-field"><span>Contraseña:</span> <strong>{'•'.repeat(form.password.length)}</strong></div>
-              <div className="modal-field"><span>Acción:</span> <strong>Inicio de sesión</strong></div>
+              <div className="modal-field"><span>Método:</span> <strong>Correo / Contraseña</strong></div>
+              <div className="modal-field"><span>Estado:</span> <strong>Sesión iniciada</strong></div>
             </div>
-            <button className="btn-primary" onClick={() => { setModal(false); navigate('/login'); }}>Cerrar</button>
+            <button className="btn-primary" onClick={() => { setModal(false); navigate('/dashboard', { replace: true }); }}>Ir al dashboard</button>
           </div>
         </div>
       )}

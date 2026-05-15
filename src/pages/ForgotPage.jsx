@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 import './auth.css';
 
 const DumbbellIcon = () => (
@@ -49,7 +51,6 @@ const WarningIcon = () => (
 export default function ForgotPage() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [modal, setModal] = useState(false);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -59,20 +60,31 @@ export default function ForgotPage() {
     return '';
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const err = validate();
     if (err) { setError(err); return; }
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setSent(true);
+    } catch (fbErr) {
+      switch (fbErr.code) {
+        case 'auth/user-not-found':
+          setError('No existe una cuenta con ese correo.');
+          break;
+        case 'auth/invalid-email':
+          setError('Formato de correo inválido.');
+          break;
+        case 'auth/too-many-requests':
+          setError('Demasiadas solicitudes. Intenta más tarde.');
+          break;
+        default:
+          setError('No se pudo enviar el correo. Inténtalo de nuevo.');
+      }
+    } finally {
       setLoading(false);
-      setModal(true);
-    }, 600);
-  };
-
-  const handleConfirm = () => {
-    setModal(false);
-    setSent(true);
+    }
   };
 
   return (
@@ -122,7 +134,7 @@ export default function ForgotPage() {
             <div className="success-icon" aria-hidden="true"><MailIcon /></div>
             <h3>¡Correo enviado!</h3>
             <p>Revisa tu bandeja de entrada en <strong>{email}</strong> y sigue las instrucciones.</p>
-            <Link to="/reset-password" className="btn-primary btn-block">Ir a restablecer</Link>
+            <Link to="/login" className="btn-primary btn-block">Volver al inicio de sesión</Link>
           </div>
         )}
 
@@ -131,22 +143,6 @@ export default function ForgotPage() {
         </p>
       </div>
 
-      {modal && (
-        <div className="modal-overlay" onClick={() => setModal(false)} role="dialog" aria-modal="true" aria-labelledby="modal-title">
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-icon" aria-hidden="true"><SendIcon /></div>
-              <h3 id="modal-title">Datos del formulario</h3>
-            </div>
-            <div className="modal-body">
-              <div className="modal-field"><span>Email:</span> <strong>{email}</strong></div>
-              <div className="modal-field"><span>Acción:</span> <strong>Solicitud de recuperación</strong></div>
-              <div className="modal-field"><span>Estado:</span> <strong>Enlace por enviar</strong></div>
-            </div>
-            <button className="btn-primary" onClick={handleConfirm}>Confirmar envío</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
