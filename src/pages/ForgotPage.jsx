@@ -138,9 +138,11 @@ export default function ForgotPage() {
           </div>
         )}
 
-        <p className="auth-footer">
-          <Link to="/login" className="link-accent">← Volver al inicio de sesión</Link>
-        </p>
+        {!sent && (
+          <p className="auth-footer">
+            <Link to="/login" className="link-accent">← Volver al inicio de sesión</Link>
+          </p>
+        )}
       </div>
 
     </div>

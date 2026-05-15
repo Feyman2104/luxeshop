@@ -371,6 +371,11 @@
   background: var(--accent-dim);
   transform: translateY(-2px);
   box-shadow: 0 6px 28px var(--accent-glow-lg);
+  color: #fff;
+}
+.btn-primary:hover .spinner {
+  border-color: rgba(255,255,255,0.35);
+  border-top-color: #fff;
 }
 
 .btn-primary:hover::before { left: 140%; }

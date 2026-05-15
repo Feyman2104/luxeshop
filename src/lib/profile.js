@@ -20,7 +20,17 @@ export async function uploadProfilePhoto(file, uid) {
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
   const path = `avatars/${uid}/${Date.now()}.${ext}`;
   const r = ref(storage, path);
-  await uploadBytes(r, file, { contentType: file.type });
+  try {
+    await uploadBytes(r, file, { contentType: file.type });
+  } catch (err) {
+    if (err?.code === 'storage/unauthorized') {
+      throw new Error('Firebase Storage rechazó la subida. Habilita Storage en la consola y publica las reglas (ver docs/README-Storage.md).');
+    }
+    if (err?.code === 'storage/unknown' || err?.code === 'storage/object-not-found') {
+      throw new Error('No se pudo conectar con Firebase Storage. Verifica que esté habilitado en tu proyecto.');
+    }
+    throw new Error('No se pudo subir la imagen: ' + (err?.message || 'error desconocido'));
+  }
   return getDownloadURL(r);
 }
 
