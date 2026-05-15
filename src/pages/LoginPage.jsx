@@ -105,7 +105,11 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const cred = await signInWithEmailAndPassword(auth, form.email, form.password);
-      await startSession(cred.user, 'password');
+      try {
+        await startSession(cred.user, 'password');
+      } catch (sessionErr) {
+        setAuthError(sessionErr.message);
+      }
       setModal(true);
     } catch (err) {
       setAuthError(mapAuthError(err.code));
@@ -120,7 +124,11 @@ export default function LoginPage() {
     setSocialLoading(providerId);
     try {
       const u = await signInWithProvider(providerId);
-      await startSession(u, providerId);
+      try {
+        await startSession(u, providerId);
+      } catch (sessionErr) {
+        setAuthError(sessionErr.message);
+      }
       navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error(`${providerId} sign-in failed:`, err.message);
