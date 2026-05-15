@@ -4,6 +4,7 @@ import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { formatDuration } from '../lib/sessions';
+import EditPhotoModal from '../components/EditPhotoModal';
 import './dashboard.css';
 
 /* ── Icons ─────────────────────────────────────────────── */
@@ -125,13 +126,21 @@ function SessionCard({ session }) {
 }
 
 /* ── Main Component ─────────────────────────────────────── */
+const CameraIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+    <circle cx="12" cy="13" r="4"/>
+  </svg>
+);
+
 export default function DashboardPage() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [sessions, setSessions]   = useState([]);
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState('');
   const [signingOut, setSigningOut] = useState(false);
+  const [editingPhoto, setEditingPhoto] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, 'sessions'), orderBy('loginAt', 'desc'));
@@ -171,7 +180,13 @@ export default function DashboardPage() {
 
           {/* Avatar */}
           <div className="db-avatar-wrap">
-            <div className="db-avatar-ring">
+            <button
+              type="button"
+              className="db-avatar-ring db-avatar-ring--button"
+              onClick={() => setEditingPhoto(true)}
+              aria-label="Cambiar foto de perfil"
+              title="Cambiar foto de perfil"
+            >
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="" className="db-avatar" referrerPolicy="no-referrer" />
               ) : (
@@ -179,7 +194,10 @@ export default function DashboardPage() {
                   {getInitials(user?.displayName, user?.email)}
                 </div>
               )}
-            </div>
+              <span className="db-avatar-edit-overlay" aria-hidden="true">
+                <CameraIcon />
+              </span>
+            </button>
             <div className={`db-online-dot ${activeSessions > 0 ? 'db-online-dot--active' : ''}`} aria-hidden="true" />
           </div>
 
@@ -265,6 +283,13 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      <EditPhotoModal
+        open={editingPhoto}
+        onClose={() => setEditingPhoto(false)}
+        user={user}
+        refreshUser={refreshUser}
+      />
     </div>
   );
 }

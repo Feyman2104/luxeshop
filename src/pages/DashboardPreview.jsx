@@ -38,6 +38,12 @@ const ZapIcon = () => (
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
   </svg>
 );
+const CameraIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+    <circle cx="12" cy="13" r="4"/>
+  </svg>
+);
 
 const METHOD_META = {
   google:   { label: 'Google',   cls: 'badge-google'   },
@@ -108,8 +114,11 @@ export default function DashboardPreview() {
       <aside className="db-sidebar">
         <div className="db-sidebar-inner">
           <div className="db-avatar-wrap" style={{marginBottom:'20px'}}>
-            <div className="db-avatar-ring">
+            <div className="db-avatar-ring db-avatar-ring--button">
               <div className="db-avatar db-avatar--fallback">FJ</div>
+              <span className="db-avatar-edit-overlay" aria-hidden="true">
+                <CameraIcon />
+              </span>
             </div>
             <div className="db-online-dot db-online-dot--active" />
           </div>
