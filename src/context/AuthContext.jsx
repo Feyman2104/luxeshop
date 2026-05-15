@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { onAuthStateChanged, signOut as fbSignOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import { endSession } from '../lib/sessions';
 
 const AuthContext = createContext(null);
 
@@ -18,6 +19,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signOutUser = useCallback(async () => {
+    await endSession();
     await fbSignOut(auth);
     setUser(null);
     setError(null);

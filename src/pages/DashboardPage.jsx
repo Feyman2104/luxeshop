@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './auth.css';
 import './dashboard.css';
 
@@ -72,6 +72,10 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
+
+        <Link to="/sessions" className="btn-secondary">
+          <span>Ver registro de sesiones</span>
+        </Link>
 
         <button className="btn-primary" onClick={handleSignOut}>
           <LogoutIcon />

@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 import './auth.css';
 
 const DumbbellIcon = () => (
@@ -49,9 +51,11 @@ const ConfettiIcon = () => (
 );
 
 export default function ResetPage() {
+  const [searchParams] = useSearchParams();
+  const oobCode = searchParams.get('oobCode');
   const [form, setForm] = useState({ password: '', confirm: '' });
   const [errors, setErrors] = useState({});
-  const [modal, setModal] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -69,15 +73,37 @@ export default function ResetPage() {
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setAuthError('');
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    if (!oobCode) {
+      setAuthError('El enlace de restablecimiento no es válido. Solicita uno nuevo desde "Olvidé mi contraseña".');
+      return;
+    }
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await verifyPasswordResetCode(auth, oobCode);
+      await confirmPasswordReset(auth, oobCode, form.password);
+      setDone(true);
+    } catch (err) {
+      switch (err.code) {
+        case 'auth/expired-action-code':
+          setAuthError('El enlace expiró. Solicita uno nuevo.');
+          break;
+        case 'auth/invalid-action-code':
+          setAuthError('El enlace no es válido o ya fue usado.');
+          break;
+        case 'auth/weak-password':
+          setAuthError('La contraseña es demasiado débil.');
+          break;
+        default:
+          setAuthError('No se pudo restablecer la contraseña. Inténtalo de nuevo.');
+      }
+    } finally {
       setLoading(false);
-      setModal(true);
-    }, 600);
+    }
   };
 
   const strength = () => {
@@ -111,7 +137,16 @@ export default function ResetPage() {
           <>
             <div className="auth-icon-header" aria-hidden="true"><KeyIcon /></div>
             <p className="auth-subtitle">Nueva contraseña</p>
-            <p className="auth-hint">Elige una contraseña segura para tu cuenta.</p>
+            <p className="auth-hint">
+              {oobCode ? 'Elige una contraseña segura para tu cuenta.' : 'Usa el enlace enviado a tu correo para restablecer tu contraseña.'}
+            </p>
+
+            {authError && (
+              <div className="auth-error" role="alert">
+                <WarningIcon />
+                <span>{authError}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} noValidate aria-label="Formulario de restablecimiento de contraseña">
               <div className="field-group">
@@ -181,22 +216,6 @@ export default function ResetPage() {
         </p>
       </div>
 
-      {modal && (
-        <div className="modal-overlay" onClick={() => setModal(false)} role="dialog" aria-modal="true" aria-labelledby="modal-title">
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-icon" aria-hidden="true"><LockIcon /></div>
-              <h3 id="modal-title">Datos del formulario</h3>
-            </div>
-            <div className="modal-body">
-              <div className="modal-field"><span>Nueva contraseña:</span> <strong>{'•'.repeat(form.password.length)} ({form.password.length} chars)</strong></div>
-              <div className="modal-field"><span>Fortaleza:</span> <strong>{strengthLabel[strength()]}</strong></div>
-              <div className="modal-field"><span>Acción:</span> <strong>Restablecimiento de contraseña</strong></div>
-            </div>
-            <button className="btn-primary" onClick={() => { setModal(false); setDone(true); }}>Confirmar cambio</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

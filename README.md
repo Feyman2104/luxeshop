@@ -18,6 +18,17 @@
 
 ---
 
+## 📚 Documentación de Autenticación
+
+| Proveedor | README |
+|-----------|--------|
+| Email / Contraseña | [docs/README-Email-Password.md](docs/README-Email-Password.md) |
+| Google | [docs/README-Google.md](docs/README-Google.md) |
+| Facebook | [docs/README-Facebook.md](docs/README-Facebook.md) |
+| GitHub | [docs/README-GitHub.md](docs/README-GitHub.md) |
+
+---
+
 ## 🛠️ Tecnologías Utilizadas
 
 | Tecnología | Versión | Uso |
@@ -25,9 +36,10 @@
 | **React** | 18.x | Framework de UI |
 | **Vite** | 5.x | Bundler y servidor de desarrollo |
 | **React Router DOM** | 6.x | Navegación SPA / Rutas |
+| **Firebase Auth** | 12.x | Autenticación (Email, Google, Facebook, GitHub) |
+| **Firebase Firestore** | 12.x | Base de datos (usuarios y sesiones) |
 | **JavaScript (ES6+)** | — | Lenguaje principal |
 | **CSS3** | — | Estilos y animaciones |
-| **Google Fonts** | — | Tipografías (Cormorant Garamond, DM Sans) |
 
 ---
 
@@ -60,10 +72,12 @@ luxeshop/
 | Ruta | Componente | Descripción |
 |------|-----------|-------------|
 | `/` | → Redirect | Redirige automáticamente a `/login` |
-| `/login` | `LoginPage` | Formulario de inicio de sesión |
-| `/register` | `RegisterPage` | Formulario de registro de nuevo usuario |
-| `/forgot-password` | `ForgotPage` | Solicitud de recuperación de contraseña |
-| `/reset-password` | `ResetPage` | Formulario para nueva contraseña |
+| `/login` | `LoginPage` | Inicio de sesión (email/pass + social) |
+| `/register` | `RegisterPage` | Registro (guarda en Firestore `users`) |
+| `/forgot-password` | `ForgotPage` | Envía email de recuperación real |
+| `/reset-password` | `ResetPage` | Cambia contraseña con `oobCode` de Firebase |
+| `/dashboard` | `DashboardPage` | Perfil del usuario autenticado |
+| `/sessions` | `SessionsPage` | Historial de sesiones con buscador |
 
 ---
 

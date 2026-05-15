@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase';
+import { startSession } from '../lib/sessions';
 import { useSocialAuth } from '../hooks/useSocialAuth';
 import { useAuth } from '../context/AuthContext';
 import './auth.css';
@@ -49,14 +53,29 @@ const GitHubIcon = () => (
   </svg>
 );
 
+const mapRegisterError = (code) => {
+  switch (code) {
+    case 'auth/email-already-in-use': return 'Ese correo ya está registrado.';
+    case 'auth/invalid-email':        return 'Formato de correo inválido.';
+    case 'auth/weak-password':        return 'La contraseña es demasiado débil.';
+    case 'auth/operation-not-allowed': return 'El registro está deshabilitado.';
+    case 'auth/network-request-failed': return 'Error de red. Revisa tu conexión.';
+    default: return 'No se pudo completar el registro. Inténtalo de nuevo.';
+  }
+};
+
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { signInWithProvider, error, clearError } = useSocialAuth();
+  const { signInWithProvider, error: socialError, clearError } = useSocialAuth();
   const { loading, user } = useAuth();
   const [socialLoading, setSocialLoading] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [errors, setErrors] = useState({});
   const [modal, setModal] = useState(false);
+
+  const error = authError || socialError;
 
   useEffect(() => {
     if (user) navigate('/dashboard', { replace: true });
@@ -79,18 +98,38 @@ export default function RegisterPage() {
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setAuthError('');
+    clearError();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setModal(true);
+    setSubmitting(true);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+      await updateProfile(cred.user, { displayName: form.name.trim() });
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        uid:       cred.user.uid,
+        name:      form.name.trim(),
+        email:     form.email,
+        createdAt: serverTimestamp(),
+      });
+      await startSession(cred.user, 'password');
+      setModal(true);
+    } catch (err) {
+      setAuthError(mapRegisterError(err.code));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSocialSignIn = async (providerId) => {
+    setAuthError('');
     clearError();
     setSocialLoading(providerId);
     try {
-      await signInWithProvider(providerId);
+      const u = await signInWithProvider(providerId);
+      await startSession(u, providerId);
       navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error(`${providerId} sign-in failed:`, err.message);
@@ -203,9 +242,9 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <button type="submit" className="btn-primary" disabled={loading || socialLoading !== null}>
-            {loading ? <span className="spinner" aria-hidden="true" /> : null}
-            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
+          <button type="submit" className="btn-primary" disabled={submitting || loading || socialLoading !== null}>
+            {submitting ? <span className="spinner" aria-hidden="true" /> : null}
+            {submitting ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
         </form>
 
@@ -258,15 +297,14 @@ export default function RegisterPage() {
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-icon" aria-hidden="true"><CheckIcon /></div>
-              <h3 id="modal-title">Datos del formulario</h3>
+              <h3 id="modal-title">¡Cuenta creada!</h3>
             </div>
             <div className="modal-body">
               <div className="modal-field"><span>Nombre:</span> <strong>{form.name}</strong></div>
               <div className="modal-field"><span>Email:</span> <strong>{form.email}</strong></div>
-              <div className="modal-field"><span>Contraseña:</span> <strong>{'•'.repeat(form.password.length)} ({form.password.length} chars)</strong></div>
-              <div className="modal-field"><span>Acción:</span> <strong>Registro de usuario</strong></div>
+              <div className="modal-field"><span>Guardado en:</span> <strong>Firebase Auth + Firestore</strong></div>
             </div>
-            <button className="btn-primary" onClick={() => setModal(false)}>Cerrar</button>
+            <button className="btn-primary" onClick={() => { setModal(false); navigate('/dashboard', { replace: true }); }}>Ir al dashboard</button>
           </div>
         </div>
       )}
