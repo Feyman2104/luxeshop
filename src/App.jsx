@@ -6,7 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import ForgotPage from './pages/ForgotPage';
 import ResetPage from './pages/ResetPage';
 import DashboardPage from './pages/DashboardPage';
-import SessionsPage from './pages/SessionsPage';
+import DashboardPreview from './pages/DashboardPreview';
 
 function App() {
   return (
@@ -26,14 +26,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/sessions"
-            element={
-              <ProtectedRoute>
-                <SessionsPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/preview-dashboard" element={<DashboardPreview />} />
         </Routes>
       </Router>
     </AuthProvider>
