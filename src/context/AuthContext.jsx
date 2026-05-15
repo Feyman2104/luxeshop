@@ -32,6 +32,12 @@ export function AuthProvider({ children }) {
 
   const clearError = useCallback(() => setError(null), []);
 
+  const refreshUser = useCallback(async () => {
+    if (!auth.currentUser) return;
+    await auth.currentUser.reload();
+    setUser({ ...auth.currentUser });
+  }, []);
+
   const value = {
     user,
     loading,
@@ -41,6 +47,7 @@ export function AuthProvider({ children }) {
     setLoading,
     setError: setErrorState,
     clearError,
+    refreshUser,
   };
 
   return (

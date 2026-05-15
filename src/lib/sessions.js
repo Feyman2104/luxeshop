@@ -46,7 +46,10 @@ export async function startSession(user, methodHint) {
     return ref.id;
   } catch (err) {
     console.error('startSession failed:', err);
-    return null;
+    if (err?.code === 'permission-denied') {
+      throw new Error('No se pudo registrar la sesión: revisa las reglas de Firestore (ver docs/README-Firestore.md).');
+    }
+    throw new Error('No se pudo registrar la sesión en Firestore. Tu inicio de sesión sí fue exitoso.');
   }
 }
 

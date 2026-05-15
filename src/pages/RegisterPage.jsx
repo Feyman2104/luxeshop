@@ -58,7 +58,7 @@ const mapRegisterError = (code) => {
     case 'auth/email-already-in-use': return 'Ese correo ya está registrado.';
     case 'auth/invalid-email':        return 'Formato de correo inválido.';
     case 'auth/weak-password':        return 'La contraseña es demasiado débil.';
-    case 'auth/operation-not-allowed': return 'El registro está deshabilitado.';
+    case 'auth/operation-not-allowed': return 'El registro con email/contraseña está deshabilitado. Habilítalo en Firebase Console → Authentication → Sign-in method → Email/Password.';
     case 'auth/network-request-failed': return 'Error de red. Revisa tu conexión.';
     default: return 'No se pudo completar el registro. Inténtalo de nuevo.';
   }
@@ -114,7 +114,11 @@ export default function RegisterPage() {
         email:     form.email,
         createdAt: serverTimestamp(),
       });
-      await startSession(cred.user, 'password');
+      try {
+        await startSession(cred.user, 'password');
+      } catch (sessionErr) {
+        setAuthError(sessionErr.message);
+      }
       setModal(true);
     } catch (err) {
       setAuthError(mapRegisterError(err.code));
@@ -129,7 +133,11 @@ export default function RegisterPage() {
     setSocialLoading(providerId);
     try {
       const u = await signInWithProvider(providerId);
-      await startSession(u, providerId);
+      try {
+        await startSession(u, providerId);
+      } catch (sessionErr) {
+        setAuthError(sessionErr.message);
+      }
       navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error(`${providerId} sign-in failed:`, err.message);
