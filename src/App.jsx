@@ -7,6 +7,7 @@ import ForgotPage from './pages/ForgotPage';
 import ResetPage from './pages/ResetPage';
 import DashboardPage from './pages/DashboardPage';
 import DashboardPreview from './pages/DashboardPreview';
+import CategoriesPage from './pages/CategoriesPage';
 
 function App() {
   return (
@@ -23,6 +24,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/categorias"
+            element={
+              <ProtectedRoute>
+                <CategoriesPage />
               </ProtectedRoute>
             }
           />
