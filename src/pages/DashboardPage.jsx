@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -46,6 +46,27 @@ const UserIcon = () => (
 const ZapIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+  </svg>
+);
+
+const BoxIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+    <line x1="12" y1="22.08" x2="12" y2="12"/>
+  </svg>
+);
+
+const TagIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+    <line x1="7" y1="7" x2="7.01" y2="7"/>
+  </svg>
+);
+
+const ShieldIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
   </svg>
 );
 
@@ -225,6 +246,34 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          <div className="db-sidebar-divider" />
+
+          {/* Módulos */}
+          <nav className="db-nav" aria-label="Módulos de la aplicación">
+            <p className="db-nav-title">Módulos</p>
+            <Link to="/productos" className="db-nav-link">
+              <BoxIcon />
+              <span>
+                <strong>Productos</strong>
+                <small>Suplementos y ropa deportiva</small>
+              </span>
+            </Link>
+            <Link to="/categorias" className="db-nav-link">
+              <TagIcon />
+              <span>
+                <strong>Categorías</strong>
+                <small>Organización del catálogo</small>
+              </span>
+            </Link>
+            <Link to="/auditoria" className="db-nav-link">
+              <ShieldIcon />
+              <span>
+                <strong>Auditoría</strong>
+                <small>Sesiones, filtros y reporte PDF</small>
+              </span>
+            </Link>
+          </nav>
 
           <div className="db-sidebar-divider" />
 

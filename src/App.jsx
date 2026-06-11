@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import DashboardPreview from './pages/DashboardPreview';
 import CategoriesPage from './pages/CategoriesPage';
 import ProductsPage from './pages/ProductsPage';
+import SessionsPage from './pages/SessionsPage';
 
 function App() {
   return (
@@ -41,6 +42,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProductsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/auditoria"
+            element={
+              <ProtectedRoute>
+                <SessionsPage />
               </ProtectedRoute>
             }
           />
