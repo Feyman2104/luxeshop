@@ -66,7 +66,12 @@ export default function ForgotPage() {
     if (err) { setError(err); return; }
     setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
+      // continueUrl: al terminar el reset, Firebase ofrece volver a la app
+      // (en producción apunta al dominio de Hosting vía VITE_APP_URL).
+      const actionCodeSettings = {
+        url: `${import.meta.env.VITE_APP_URL || window.location.origin}/login`,
+      };
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
       setSent(true);
     } catch (fbErr) {
       switch (fbErr.code) {
