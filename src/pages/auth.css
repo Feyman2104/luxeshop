@@ -328,6 +328,23 @@
 
 .strength-label { font-weight: 600; color: var(--text-primary); }
 
+/* === PASSWORD POLICY CHECKLIST === */
+.password-checklist {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+}
+
+.password-checklist .req-met   { color: var(--success); }
+.password-checklist .req-unmet { color: var(--text-hint); }
+
 /* === PRIMARY BUTTON (ui-ux-pro-max: loading-buttons, press-feedback, duration-timing) === */
 .btn-primary {
   width: 100%;

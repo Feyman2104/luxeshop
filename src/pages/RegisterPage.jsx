@@ -6,6 +6,7 @@ import { auth, db } from '../lib/firebase';
 import { startSession } from '../lib/sessions';
 import { useSocialAuth } from '../hooks/useSocialAuth';
 import { useAuth } from '../context/AuthContext';
+import { validatePassword, getRequirementStatus, getStrength, STRENGTH_LABELS, STRENGTH_COLORS } from '../lib/passwordPolicy';
 import './auth.css';
 
 const DumbbellIcon = () => (
@@ -86,8 +87,8 @@ export default function RegisterPage() {
     if (!form.name.trim()) e.name = 'El nombre es obligatorio.';
     if (!form.email) e.email = 'El correo es obligatorio.';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Formato de correo inválido.';
-    if (!form.password) e.password = 'La contraseña es obligatoria.';
-    else if (form.password.length < 8) e.password = 'Mínimo 8 caracteres.';
+    const passwordError = validatePassword(form.password);
+    if (passwordError) e.password = passwordError;
     if (!form.confirm) e.confirm = 'Confirma tu contraseña.';
     else if (form.confirm !== form.password) e.confirm = 'Las contraseñas no coinciden.';
     return e;
@@ -199,7 +200,7 @@ export default function RegisterPage() {
                 type="password"
                 id="password"
                 name="password"
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Mínimo 10 caracteres"
                 value={form.password}
                 onChange={handleChange}
                 className={errors.password ? 'input-error' : ''}
@@ -226,21 +227,26 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="password-strength">
-            {form.password && (
-              <>
+          {form.password && (
+            <>
+              <div className="password-strength" role="group" aria-label="Indicador de fortaleza">
                 <span>Fortaleza:</span>
-                <div className="strength-bars" role="group" aria-label="Indicador de fortaleza">
-                  <div className={`bar ${form.password.length >= 1 ? 'weak' : ''}`} />
-                  <div className={`bar ${form.password.length >= 6 ? 'medium' : ''}`} />
-                  <div className={`bar ${form.password.length >= 10 ? 'strong' : ''}`} />
+                <div className="strength-bars">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className={`bar ${getStrength(form.password) >= i ? STRENGTH_COLORS[getStrength(form.password)] : ''}`} />
+                  ))}
                 </div>
-                <span className="strength-label">
-                  {form.password.length < 6 ? 'Débil' : form.password.length < 10 ? 'Media' : 'Fuerte'}
-                </span>
-              </>
-            )}
-          </div>
+                <span className="strength-label">{STRENGTH_LABELS[getStrength(form.password)]}</span>
+              </div>
+              <ul className="password-checklist" aria-label="Requisitos de la contraseña">
+                {getRequirementStatus(form.password).map(({ key, label, met }) => (
+                  <li key={key} className={met ? 'req-met' : 'req-unmet'}>
+                    {met ? '✓' : '○'} {label}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
 
           <button type="submit" className="btn-primary" disabled={submitting || loading || socialLoading !== null}>
             {submitting ? <span className="spinner" aria-hidden="true" /> : null}
