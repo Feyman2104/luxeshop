@@ -69,6 +69,91 @@
   white-space: nowrap;
 }
 
+/* ── Filtros de auditoría ── */
+.sessions-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 12px;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.filter-field label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #888;
+}
+
+.filter-field select,
+.filter-field input {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  color: #e8e8e8;
+  font-size: 0.88rem;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  color-scheme: dark;
+}
+
+.filter-field select:focus,
+.filter-field input:focus {
+  border-color: #4f8ef7;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.btn-clear-filters {
+  background: transparent;
+  border: 1px solid #333;
+  color: #999;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.btn-clear-filters:hover {
+  color: #e8e8e8;
+  border-color: #555;
+}
+
+.btn-export-pdf {
+  background: #4f8ef7;
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+
+.btn-export-pdf:hover { opacity: 0.85; }
+.btn-export-pdf:disabled { opacity: 0.4; cursor: not-allowed; }
+
 .sessions-loading,
 .sessions-empty {
   text-align: center;
