@@ -8,6 +8,7 @@ import ResetPage from './pages/ResetPage';
 import DashboardPage from './pages/DashboardPage';
 import DashboardPreview from './pages/DashboardPreview';
 import CategoriesPage from './pages/CategoriesPage';
+import ProductsPage from './pages/ProductsPage';
 
 function App() {
   return (
@@ -32,6 +33,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CategoriesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/productos"
+            element={
+              <ProtectedRoute>
+                <ProductsPage />
               </ProtectedRoute>
             }
           />
