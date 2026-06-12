@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { onSnapshot, query, orderBy } from 'firebase/firestore';
+import { Link, useParams } from 'react-router-dom';
+import { onSnapshot, query, where } from 'firebase/firestore';
 import {
   productsRef,
   createProduct,
@@ -9,16 +9,19 @@ import {
   validateProduct,
   formatPrice,
 } from '../lib/products';
-import { categoriesRef } from '../lib/categories';
+import { getCategory } from '../lib/categories';
 import './crud.css';
 
-const EMPTY_FORM = { name: '', description: '', price: '', stock: '', categoryId: '', imageUrl: '' };
+const emptyForm = (categoryId) => ({
+  name: '', description: '', price: '', stock: '', categoryId, imageUrl: '',
+});
 
-export default function ProductsPage() {
+export default function CategoryProductsPage() {
+  const { categoryId } = useParams();
+  const [category, setCategory] = useState(undefined); // undefined = cargando, null = no existe
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(emptyForm(categoryId));
   const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -27,29 +30,31 @@ export default function ProductsPage() {
   const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
-    const q = query(productsRef(), orderBy('name'));
+    let active = true;
+    getCategory(categoryId)
+      .then((c) => { if (active) setCategory(c); })
+      .catch(() => { if (active) setCategory(null); });
+    return () => { active = false; };
+  }, [categoryId]);
+
+  useEffect(() => {
+    const q = query(productsRef(), where('categoryId', '==', categoryId));
     const unsub = onSnapshot(
       q,
       (snap) => {
-        setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        setProducts(list);
         setLoading(false);
       },
       (err) => {
-        console.error('products snapshot failed:', err);
+        console.error('category products snapshot failed:', err);
         setFeedback('No se pudieron cargar los productos.');
         setLoading(false);
       }
     );
     return unsub;
-  }, []);
-
-  useEffect(() => {
-    const q = query(categoriesRef(), orderBy('name'));
-    const unsub = onSnapshot(q, (snap) => {
-      setCategories(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-    return unsub;
-  }, []);
+  }, [categoryId]);
 
   const showFeedback = (msg) => {
     setFeedback(msg);
@@ -63,7 +68,7 @@ export default function ProductsPage() {
 
   const openCreate = () => {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm(emptyForm(categoryId));
     setErrors({});
     setFormOpen(true);
   };
@@ -75,7 +80,7 @@ export default function ProductsPage() {
       description: prod.description,
       price: String(prod.price),
       stock: String(prod.stock),
-      categoryId: prod.categoryId || '',
+      categoryId,
       imageUrl: prod.imageUrl || '',
     });
     setErrors({});
@@ -85,7 +90,7 @@ export default function ProductsPage() {
   const closeForm = () => {
     setFormOpen(false);
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm(emptyForm(categoryId));
     setErrors({});
   };
 
@@ -93,8 +98,7 @@ export default function ProductsPage() {
     e.preventDefault();
     const errs = validateProduct(form);
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    const category = categories.find((c) => c.id === form.categoryId);
-    const payload = { ...form, categoryName: category?.name || '' };
+    const payload = { ...form, categoryId, categoryName: category?.name || '' };
     setSaving(true);
     try {
       if (editingId) {
@@ -127,13 +131,29 @@ export default function ProductsPage() {
     }
   };
 
+  if (category === null) {
+    return (
+      <div className="crud-root">
+        <div className="crud-empty-state">
+          <p className="crud-empty-icon" aria-hidden="true">🔍</p>
+          <p>Esta categoría no existe o fue eliminada.</p>
+          <Link to="/categorias" className="crud-btn-primary">Volver a categorías</Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="crud-root">
-      <header className="crud-header crud-header--row">
-        <div>
-          <Link to="/dashboard" className="crud-back" aria-label="Volver al dashboard">← Dashboard</Link>
-          <h1 className="crud-title">Productos</h1>
-          <p className="crud-subtitle">Suplementos y ropa deportiva disponibles en la tienda</p>
+      <Link to="/categorias" className="crud-back" aria-label="Volver a categorías">← Categorías</Link>
+
+      <header className="crud-cat-banner">
+        {category?.imageUrl
+          ? <img src={category.imageUrl} alt={category.name} className="crud-cat-banner-img" />
+          : <div className="crud-cat-banner-img crud-cat-banner-img--placeholder" aria-hidden="true">🏷️</div>}
+        <div className="crud-cat-banner-text">
+          <h1 className="crud-title">{category?.name || 'Categoría'}</h1>
+          {category?.description && <p className="crud-subtitle">{category.description}</p>}
         </div>
         <button className="crud-btn-primary" onClick={openCreate}>+ Nuevo producto</button>
       </header>
@@ -145,18 +165,17 @@ export default function ProductsPage() {
       ) : products.length === 0 ? (
         <div className="crud-empty-state">
           <p className="crud-empty-icon" aria-hidden="true">📦</p>
-          <p>No hay productos todavía.</p>
-          <button className="crud-btn-primary" onClick={openCreate}>Crear el primero</button>
+          <p>Esta categoría todavía no tiene productos.</p>
+          <button className="crud-btn-primary" onClick={openCreate}>Agregar el primero</button>
         </div>
       ) : (
-        <div className="crud-grid" aria-label="Listado de productos">
+        <div className="crud-grid" aria-label={`Productos de ${category?.name || 'la categoría'}`}>
           {products.map((prod) => (
             <article className="crud-card" key={prod.id}>
               {prod.imageUrl
                 ? <img src={prod.imageUrl} alt={prod.name} className="crud-card-img" />
                 : <div className="crud-card-img crud-card-img--placeholder" aria-hidden="true">📦</div>}
               <div className="crud-card-body">
-                {prod.categoryName && <span className="crud-badge">{prod.categoryName}</span>}
                 <h3 className="crud-card-title">{prod.name}</h3>
                 <p className="crud-card-desc">{prod.description}</p>
                 <div className="crud-card-meta">
@@ -177,6 +196,7 @@ export default function ProductsPage() {
         <div className="crud-modal-overlay" onClick={closeForm} role="dialog" aria-modal="true" aria-labelledby="form-title">
           <div className="crud-modal crud-modal--form" onClick={(e) => e.stopPropagation()}>
             <h3 id="form-title">{editingId ? 'Editar producto' : 'Nuevo producto'}</h3>
+            <p className="crud-modal-context">En <strong>{category?.name}</strong></p>
             <form onSubmit={handleSubmit} noValidate>
               <div className="crud-fields-row">
                 <div className="crud-field">
@@ -195,26 +215,6 @@ export default function ProductsPage() {
                 </div>
 
                 <div className="crud-field">
-                  <label htmlFor="categoryId">Categoría</label>
-                  <select
-                    id="categoryId"
-                    name="categoryId"
-                    value={form.categoryId}
-                    onChange={handleChange}
-                    className={errors.categoryId ? 'input-error' : ''}
-                    aria-describedby={errors.categoryId ? 'category-error' : undefined}
-                  >
-                    <option value="">Selecciona una categoría</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                  {errors.categoryId && <span className="crud-error" id="category-error" role="alert">{errors.categoryId}</span>}
-                </div>
-              </div>
-
-              <div className="crud-fields-row">
-                <div className="crud-field">
                   <label htmlFor="price">Precio (COP)</label>
                   <input
                     type="number"
@@ -229,7 +229,9 @@ export default function ProductsPage() {
                   />
                   {errors.price && <span className="crud-error" id="price-error" role="alert">{errors.price}</span>}
                 </div>
+              </div>
 
+              <div className="crud-fields-row">
                 <div className="crud-field">
                   <label htmlFor="stock">Stock</label>
                   <input
@@ -245,6 +247,18 @@ export default function ProductsPage() {
                     aria-describedby={errors.stock ? 'stock-error' : undefined}
                   />
                   {errors.stock && <span className="crud-error" id="stock-error" role="alert">{errors.stock}</span>}
+                </div>
+
+                <div className="crud-field">
+                  <label htmlFor="imageUrl">Imagen (opcional)</label>
+                  <input
+                    type="url"
+                    id="imageUrl"
+                    name="imageUrl"
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    value={form.imageUrl}
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
 
@@ -263,19 +277,7 @@ export default function ProductsPage() {
                 {errors.description && <span className="crud-error" id="description-error" role="alert">{errors.description}</span>}
               </div>
 
-              <div className="crud-field">
-                <label htmlFor="imageUrl">Imagen (opcional)</label>
-                <input
-                  type="url"
-                  id="imageUrl"
-                  name="imageUrl"
-                  placeholder="https://ejemplo.com/imagen.jpg"
-                  value={form.imageUrl}
-                  onChange={handleChange}
-                />
-                <span className="crud-hint">Pega el enlace de una imagen (clic derecho → Copiar dirección de la imagen).</span>
-                {form.imageUrl && <img src={form.imageUrl} alt="Vista previa del producto" className="crud-img-preview" onError={(e) => { e.currentTarget.style.display = 'none'; }} onLoad={(e) => { e.currentTarget.style.display = ''; }} />}
-              </div>
+              {form.imageUrl && <img src={form.imageUrl} alt="Vista previa del producto" className="crud-img-preview" onError={(e) => { e.currentTarget.style.display = 'none'; }} onLoad={(e) => { e.currentTarget.style.display = ''; }} />}
 
               <div className="crud-form-actions">
                 <button type="submit" className="crud-btn-primary" disabled={saving}>

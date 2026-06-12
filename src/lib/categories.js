@@ -4,6 +4,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -12,6 +13,11 @@ export const CATEGORIES_COLLECTION = 'categories';
 
 export function categoriesRef() {
   return collection(db, CATEGORIES_COLLECTION);
+}
+
+export async function getCategory(id) {
+  const snap = await getDoc(doc(db, CATEGORIES_COLLECTION, id));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
 export async function createCategory({ name, description, imageUrl }) {

@@ -8,7 +8,7 @@ import ResetPage from './pages/ResetPage';
 import DashboardPage from './pages/DashboardPage';
 import DashboardPreview from './pages/DashboardPreview';
 import CategoriesPage from './pages/CategoriesPage';
-import ProductsPage from './pages/ProductsPage';
+import CategoryProductsPage from './pages/CategoryProductsPage';
 import SessionsPage from './pages/SessionsPage';
 
 function App() {
@@ -38,10 +38,10 @@ function App() {
             }
           />
           <Route
-            path="/productos"
+            path="/categorias/:categoryId"
             element={
               <ProtectedRoute>
-                <ProductsPage />
+                <CategoryProductsPage />
               </ProtectedRoute>
             }
           />

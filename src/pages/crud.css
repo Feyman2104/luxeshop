@@ -287,6 +287,29 @@
   transform: translateY(-2px);
 }
 
+/* Categoría clicable (drill-down a sus productos) */
+.crud-card--link { cursor: pointer; }
+
+.crud-card--link:hover {
+  border-color: var(--accent, #7ab830);
+}
+
+.crud-card--link:focus-visible {
+  outline: none;
+  border-color: var(--accent, #7ab830);
+  box-shadow: var(--shadow-glow, 0 0 0 3px rgba(122,184,48,0.30));
+}
+
+.crud-card-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent, #7ab830);
+  margin-top: 2px;
+}
+
+.crud-card-count span { transition: transform 0.18s ease; display: inline-block; }
+.crud-card--link:hover .crud-card-count span { transform: translateX(3px); }
+
 .crud-card-img {
   width: 100%;
   aspect-ratio: 4 / 3;
@@ -354,6 +377,56 @@
 }
 
 .crud-card .crud-badge { align-self: flex-start; }
+
+/* ── Banner de cabecera del drill-down (categoría → productos) ── */
+.crud-cat-banner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 0 22px;
+  margin: 8px 0 24px;
+  border-bottom: 1px solid var(--border, rgba(255,255,255,0.07));
+}
+
+.crud-cat-banner-img {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-md, 12px);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--surface, rgba(255,255,255,0.04));
+}
+
+.crud-cat-banner-img--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  border: 1px dashed var(--border-strong, rgba(255,255,255,0.12));
+}
+
+.crud-cat-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.crud-cat-banner .crud-title { margin: 0; }
+.crud-cat-banner .crud-subtitle { margin-top: 4px; }
+
+.crud-modal-context {
+  color: var(--text-secondary, #a0a0a0);
+  font-size: 0.85rem;
+  margin: -10px 0 18px;
+}
+.crud-modal-context strong { color: var(--accent, #7ab830); }
+
+@media (max-width: 560px) {
+  .crud-cat-banner {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .crud-cat-banner .crud-btn-primary { width: 100%; }
+}
 
 /* ── Estado vacío ── */
 .crud-empty-state {

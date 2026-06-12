@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { onSnapshot, query, orderBy } from 'firebase/firestore';
 import {
   categoriesRef,
@@ -8,12 +8,15 @@ import {
   deleteCategory,
   validateCategory,
 } from '../lib/categories';
+import { productsRef } from '../lib/products';
 import './crud.css';
 
 const EMPTY_FORM = { name: '', description: '', imageUrl: '' };
 
 export default function CategoriesPage() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
@@ -37,6 +40,19 @@ export default function CategoriesPage() {
         setLoading(false);
       }
     );
+    return unsub;
+  }, []);
+
+  // Conteo de productos por categoría (afford­ance "N productos").
+  useEffect(() => {
+    const unsub = onSnapshot(productsRef(), (snap) => {
+      const next = {};
+      snap.docs.forEach((d) => {
+        const cid = d.data().categoryId;
+        if (cid) next[cid] = (next[cid] || 0) + 1;
+      });
+      setCounts(next);
+    });
     return unsub;
   }, []);
 
@@ -130,21 +146,34 @@ export default function CategoriesPage() {
         </div>
       ) : (
         <div className="crud-grid" aria-label="Listado de categorías">
-          {categories.map((cat) => (
-            <article className="crud-card" key={cat.id}>
-              {cat.imageUrl
-                ? <img src={cat.imageUrl} alt={cat.name} className="crud-card-img" />
-                : <div className="crud-card-img crud-card-img--placeholder" aria-hidden="true">🏷️</div>}
-              <div className="crud-card-body">
-                <h3 className="crud-card-title">{cat.name}</h3>
-                <p className="crud-card-desc">{cat.description}</p>
-                <div className="crud-card-actions">
-                  <button className="crud-btn-sm" onClick={() => openEdit(cat)} aria-label={`Editar ${cat.name}`}>Editar</button>
-                  <button className="crud-btn-sm crud-btn-danger" onClick={() => setDeleteTarget(cat)} aria-label={`Eliminar ${cat.name}`}>Eliminar</button>
+          {categories.map((cat) => {
+            const n = counts[cat.id] || 0;
+            const open = () => navigate(`/categorias/${cat.id}`);
+            return (
+              <article
+                className="crud-card crud-card--link"
+                key={cat.id}
+                role="button"
+                tabIndex={0}
+                onClick={open}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }}
+                aria-label={`Abrir productos de ${cat.name}`}
+              >
+                {cat.imageUrl
+                  ? <img src={cat.imageUrl} alt={cat.name} className="crud-card-img" />
+                  : <div className="crud-card-img crud-card-img--placeholder" aria-hidden="true">🏷️</div>}
+                <div className="crud-card-body">
+                  <h3 className="crud-card-title">{cat.name}</h3>
+                  <p className="crud-card-desc">{cat.description}</p>
+                  <span className="crud-card-count">{n} {n === 1 ? 'producto' : 'productos'} <span aria-hidden="true">→</span></span>
+                  <div className="crud-card-actions">
+                    <button className="crud-btn-sm" onClick={(e) => { e.stopPropagation(); openEdit(cat); }} aria-label={`Editar ${cat.name}`}>Editar</button>
+                    <button className="crud-btn-sm crud-btn-danger" onClick={(e) => { e.stopPropagation(); setDeleteTarget(cat); }} aria-label={`Eliminar ${cat.name}`}>Eliminar</button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
 
