@@ -6,9 +6,8 @@ import {
   doc,
   serverTimestamp,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from './firebase';
-import { validateImageFile } from './profile';
+import { db } from './firebase';
+import { uploadImage } from './uploads';
 
 export const PRODUCTS_COLLECTION = 'products';
 
@@ -17,12 +16,7 @@ export function productsRef() {
 }
 
 export async function uploadProductImage(file) {
-  validateImageFile(file);
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const path = `products/${Date.now()}.${ext}`;
-  const r = ref(storage, path);
-  await uploadBytes(r, file, { contentType: file.type });
-  return getDownloadURL(r);
+  return uploadImage(file, 'products');
 }
 
 export async function createProduct({ name, description, price, stock, categoryId, categoryName, imageUrl }) {

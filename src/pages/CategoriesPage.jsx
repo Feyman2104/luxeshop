@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { onSnapshot, query, orderBy } from 'firebase/firestore';
 import {
@@ -7,10 +7,11 @@ import {
   updateCategory,
   deleteCategory,
   validateCategory,
+  uploadCategoryImage,
 } from '../lib/categories';
 import './crud.css';
 
-const EMPTY_FORM = { name: '', description: '' };
+const EMPTY_FORM = { name: '', description: '', imageUrl: '' };
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -18,9 +19,12 @@ export default function CategoriesPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [feedback, setFeedback] = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const q = query(categoriesRef(), orderBy('name'));
@@ -49,17 +53,41 @@ export default function CategoriesPage() {
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  const startEdit = (cat) => {
-    setEditingId(cat.id);
-    setForm({ name: cat.name, description: cat.description });
-    setErrors({});
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const url = await uploadCategoryImage(file);
+      setForm((f) => ({ ...f, imageUrl: url }));
+    } catch (err) {
+      console.error('upload category image failed:', err);
+      showFeedback(err.message || 'Error al subir la imagen.');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
-  const cancelEdit = () => {
+  const openCreate = () => {
     setEditingId(null);
     setForm(EMPTY_FORM);
     setErrors({});
+    setFormOpen(true);
+  };
+
+  const openEdit = (cat) => {
+    setEditingId(cat.id);
+    setForm({ name: cat.name, description: cat.description, imageUrl: cat.imageUrl || '' });
+    setErrors({});
+    setFormOpen(true);
+  };
+
+  const closeForm = () => {
+    setFormOpen(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setErrors({});
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -75,7 +103,7 @@ export default function CategoriesPage() {
         await createCategory(form);
         showFeedback('Categoría creada correctamente.');
       }
-      cancelEdit();
+      closeForm();
     } catch (err) {
       console.error('save category failed:', err);
       showFeedback('Error al guardar la categoría.');
@@ -88,7 +116,7 @@ export default function CategoriesPage() {
     if (!deleteTarget) return;
     try {
       await deleteCategory(deleteTarget.id);
-      if (editingId === deleteTarget.id) cancelEdit();
+      if (editingId === deleteTarget.id) closeForm();
       showFeedback('Categoría eliminada.');
     } catch (err) {
       console.error('delete category failed:', err);
@@ -100,92 +128,104 @@ export default function CategoriesPage() {
 
   return (
     <div className="crud-root">
-      <header className="crud-header">
-        <Link to="/dashboard" className="crud-back" aria-label="Volver al dashboard">← Dashboard</Link>
+      <header className="crud-header crud-header--row">
         <div>
+          <Link to="/dashboard" className="crud-back" aria-label="Volver al dashboard">← Dashboard</Link>
           <h1 className="crud-title">Categorías</h1>
           <p className="crud-subtitle">Organiza los productos de la tienda por categoría</p>
         </div>
+        <button className="crud-btn-primary" onClick={openCreate}>+ Nueva categoría</button>
       </header>
 
       {feedback && <div className="crud-feedback" role="status">{feedback}</div>}
 
-      <section className="crud-form-card" aria-label={editingId ? 'Editar categoría' : 'Nueva categoría'}>
-        <h2 className="crud-form-title">{editingId ? 'Editar categoría' : 'Nueva categoría'}</h2>
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="crud-field">
-            <label htmlFor="name">Nombre</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              placeholder="Ej: Suplementos"
-              value={form.name}
-              onChange={handleChange}
-              className={errors.name ? 'input-error' : ''}
-              aria-describedby={errors.name ? 'name-error' : undefined}
-            />
-            {errors.name && <span className="crud-error" id="name-error" role="alert">{errors.name}</span>}
-          </div>
+      {loading ? (
+        <p className="crud-empty">Cargando categorías...</p>
+      ) : categories.length === 0 ? (
+        <div className="crud-empty-state">
+          <p className="crud-empty-icon" aria-hidden="true">🏷️</p>
+          <p>No hay categorías todavía.</p>
+          <button className="crud-btn-primary" onClick={openCreate}>Crear la primera</button>
+        </div>
+      ) : (
+        <div className="crud-grid" aria-label="Listado de categorías">
+          {categories.map((cat) => (
+            <article className="crud-card" key={cat.id}>
+              {cat.imageUrl
+                ? <img src={cat.imageUrl} alt={cat.name} className="crud-card-img" />
+                : <div className="crud-card-img crud-card-img--placeholder" aria-hidden="true">🏷️</div>}
+              <div className="crud-card-body">
+                <h3 className="crud-card-title">{cat.name}</h3>
+                <p className="crud-card-desc">{cat.description}</p>
+                <div className="crud-card-actions">
+                  <button className="crud-btn-sm" onClick={() => openEdit(cat)} aria-label={`Editar ${cat.name}`}>Editar</button>
+                  <button className="crud-btn-sm crud-btn-danger" onClick={() => setDeleteTarget(cat)} aria-label={`Eliminar ${cat.name}`}>Eliminar</button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
 
-          <div className="crud-field">
-            <label htmlFor="description">Descripción</label>
-            <textarea
-              id="description"
-              name="description"
-              placeholder="Describe qué productos agrupa esta categoría"
-              rows={3}
-              value={form.description}
-              onChange={handleChange}
-              className={errors.description ? 'input-error' : ''}
-              aria-describedby={errors.description ? 'description-error' : undefined}
-            />
-            {errors.description && <span className="crud-error" id="description-error" role="alert">{errors.description}</span>}
-          </div>
+      {formOpen && (
+        <div className="crud-modal-overlay" onClick={closeForm} role="dialog" aria-modal="true" aria-labelledby="form-title">
+          <div className="crud-modal crud-modal--form" onClick={(e) => e.stopPropagation()}>
+            <h3 id="form-title">{editingId ? 'Editar categoría' : 'Nueva categoría'}</h3>
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="crud-field">
+                <label htmlFor="name">Nombre</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  placeholder="Ej: Proteínas limpias"
+                  value={form.name}
+                  onChange={handleChange}
+                  className={errors.name ? 'input-error' : ''}
+                  aria-describedby={errors.name ? 'name-error' : undefined}
+                />
+                {errors.name && <span className="crud-error" id="name-error" role="alert">{errors.name}</span>}
+              </div>
 
-          <div className="crud-form-actions">
-            <button type="submit" className="crud-btn-primary" disabled={saving}>
-              {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear categoría'}
-            </button>
-            {editingId && (
-              <button type="button" className="crud-btn-ghost" onClick={cancelEdit}>Cancelar</button>
-            )}
-          </div>
-        </form>
-      </section>
+              <div className="crud-field">
+                <label htmlFor="description">Descripción</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  placeholder="Describe qué productos agrupa esta categoría"
+                  rows={3}
+                  value={form.description}
+                  onChange={handleChange}
+                  className={errors.description ? 'input-error' : ''}
+                  aria-describedby={errors.description ? 'description-error' : undefined}
+                />
+                {errors.description && <span className="crud-error" id="description-error" role="alert">{errors.description}</span>}
+              </div>
 
-      <section className="crud-list-card" aria-label="Listado de categorías">
-        <h2 className="crud-form-title">Listado ({categories.length})</h2>
-        {loading ? (
-          <p className="crud-empty">Cargando categorías...</p>
-        ) : categories.length === 0 ? (
-          <p className="crud-empty">No hay categorías todavía. Crea la primera con el formulario.</p>
-        ) : (
-          <div className="crud-table-wrap">
-            <table className="crud-table">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Descripción</th>
-                  <th className="crud-col-actions">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((cat) => (
-                  <tr key={cat.id}>
-                    <td className="crud-cell-strong">{cat.name}</td>
-                    <td>{cat.description}</td>
-                    <td className="crud-col-actions">
-                      <button className="crud-btn-sm" onClick={() => startEdit(cat)} aria-label={`Editar ${cat.name}`}>Editar</button>
-                      <button className="crud-btn-sm crud-btn-danger" onClick={() => setDeleteTarget(cat)} aria-label={`Eliminar ${cat.name}`}>Eliminar</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              <div className="crud-field">
+                <label htmlFor="image">Imagen (opcional, máx 2 MB)</label>
+                <input
+                  type="file"
+                  id="image"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  ref={fileInputRef}
+                  disabled={uploadingImage}
+                />
+                {uploadingImage && <span className="crud-error" style={{ color: 'var(--accent, #7ab830)' }}>Subiendo imagen...</span>}
+                {form.imageUrl && <img src={form.imageUrl} alt="Vista previa de la categoría" className="crud-img-preview" />}
+              </div>
+
+              <div className="crud-form-actions">
+                <button type="submit" className="crud-btn-primary" disabled={saving || uploadingImage}>
+                  {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear categoría'}
+                </button>
+                <button type="button" className="crud-btn-ghost" onClick={closeForm}>Cancelar</button>
+              </div>
+            </form>
           </div>
-        )}
-      </section>
+        </div>
+      )}
 
       {deleteTarget && (
         <div className="crud-modal-overlay" onClick={() => setDeleteTarget(null)} role="dialog" aria-modal="true" aria-labelledby="delete-title">

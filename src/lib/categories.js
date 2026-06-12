@@ -7,6 +7,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { uploadImage } from './uploads';
 
 export const CATEGORIES_COLLECTION = 'categories';
 
@@ -14,19 +15,25 @@ export function categoriesRef() {
   return collection(db, CATEGORIES_COLLECTION);
 }
 
-export async function createCategory({ name, description }) {
+export async function uploadCategoryImage(file) {
+  return uploadImage(file, 'categories');
+}
+
+export async function createCategory({ name, description, imageUrl }) {
   return addDoc(categoriesRef(), {
     name: name.trim(),
     description: description.trim(),
+    imageUrl: imageUrl || '',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 }
 
-export async function updateCategory(id, { name, description }) {
+export async function updateCategory(id, { name, description, imageUrl }) {
   return updateDoc(doc(db, CATEGORIES_COLLECTION, id), {
     name: name.trim(),
     description: description.trim(),
+    imageUrl: imageUrl || '',
     updatedAt: serverTimestamp(),
   });
 }

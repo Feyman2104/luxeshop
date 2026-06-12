@@ -19,6 +19,16 @@
   margin-bottom: 28px;
 }
 
+.crud-header--row {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.crud-header--row .crud-back { margin-bottom: 10px; }
+
 .crud-back {
   align-self: flex-start;
   color: var(--text-secondary, #a0a0a0);
@@ -250,6 +260,112 @@
   font-size: 0.92rem;
 }
 
+/* ── Grilla de tarjetas ── */
+.crud-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.crud-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-raised, #0f0f0f);
+  border: 1px solid var(--border, rgba(255,255,255,0.07));
+  border-radius: var(--radius-lg, 18px);
+  overflow: hidden;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.crud-card:hover {
+  border-color: var(--border-strong, rgba(255,255,255,0.12));
+  transform: translateY(-2px);
+}
+
+.crud-card-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--surface, rgba(255,255,255,0.04));
+  display: block;
+}
+
+.crud-card-img--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.6rem;
+  color: var(--text-muted, #606060);
+}
+
+.crud-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  flex: 1;
+}
+
+.crud-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #f0f0f0);
+}
+
+.crud-card-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary, #a0a0a0);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.crud-card-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.crud-card-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent, #7ab830);
+}
+
+.crud-card-stock {
+  font-size: 0.76rem;
+  color: var(--text-muted, #606060);
+}
+
+.crud-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.crud-card .crud-badge { align-self: flex-start; }
+
+/* ── Estado vacío ── */
+.crud-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 56px 20px;
+  background: var(--bg-raised, #0f0f0f);
+  border: 1px dashed var(--border-strong, rgba(255,255,255,0.12));
+  border-radius: var(--radius-lg, 18px);
+  color: var(--text-secondary, #a0a0a0);
+  text-align: center;
+}
+
+.crud-empty-icon { font-size: 2.8rem; }
+
 /* ── Product extras ── */
 .crud-thumb {
   width: 44px;
@@ -314,6 +430,15 @@
 
 .crud-modal h3 { margin-bottom: 10px; font-size: 1.15rem; }
 .crud-modal p { color: var(--text-secondary, #a0a0a0); font-size: 0.92rem; margin-bottom: 20px; line-height: 1.5; }
+
+/* Variante ancha para el formulario de crear/editar */
+.crud-modal--form {
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.crud-modal--form h3 { margin-bottom: 20px; }
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
