@@ -7,3 +7,5 @@ dist-ssr
 !.env.example
 .DS_Store
 seed-categories.mjs
+list-data.mjs
+update-images.mjs
