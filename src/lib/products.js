@@ -7,16 +7,11 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { uploadImage } from './uploads';
 
 export const PRODUCTS_COLLECTION = 'products';
 
 export function productsRef() {
   return collection(db, PRODUCTS_COLLECTION);
-}
-
-export async function uploadProductImage(file) {
-  return uploadImage(file, 'products');
 }
 
 export async function createProduct({ name, description, price, stock, categoryId, categoryName, imageUrl }) {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { onSnapshot, query, orderBy } from 'firebase/firestore';
 import {
@@ -7,7 +7,6 @@ import {
   updateProduct,
   deleteProduct,
   validateProduct,
-  uploadProductImage,
   formatPrice,
 } from '../lib/products';
 import { categoriesRef } from '../lib/categories';
@@ -24,10 +23,8 @@ export default function ProductsPage() {
   const [editingId, setEditingId] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [feedback, setFeedback] = useState('');
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const q = query(productsRef(), orderBy('name'));
@@ -64,21 +61,6 @@ export default function ProductsPage() {
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  const handleImageChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingImage(true);
-    try {
-      const url = await uploadProductImage(file);
-      setForm((f) => ({ ...f, imageUrl: url }));
-    } catch (err) {
-      console.error('upload product image failed:', err);
-      showFeedback(err.message || 'Error al subir la imagen.');
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
   const openCreate = () => {
     setEditingId(null);
     setForm(EMPTY_FORM);
@@ -105,7 +87,6 @@ export default function ProductsPage() {
     setEditingId(null);
     setForm(EMPTY_FORM);
     setErrors({});
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -283,21 +264,21 @@ export default function ProductsPage() {
               </div>
 
               <div className="crud-field">
-                <label htmlFor="image">Imagen (opcional, máx 2 MB)</label>
+                <label htmlFor="imageUrl">Imagen (opcional)</label>
                 <input
-                  type="file"
-                  id="image"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  ref={fileInputRef}
-                  disabled={uploadingImage}
+                  type="url"
+                  id="imageUrl"
+                  name="imageUrl"
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                  value={form.imageUrl}
+                  onChange={handleChange}
                 />
-                {uploadingImage && <span className="crud-error" style={{ color: 'var(--accent, #7ab830)' }}>Subiendo imagen...</span>}
-                {form.imageUrl && <img src={form.imageUrl} alt="Vista previa del producto" className="crud-img-preview" />}
+                <span className="crud-hint">Pega el enlace de una imagen (clic derecho → Copiar dirección de la imagen).</span>
+                {form.imageUrl && <img src={form.imageUrl} alt="Vista previa del producto" className="crud-img-preview" onError={(e) => { e.currentTarget.style.display = 'none'; }} onLoad={(e) => { e.currentTarget.style.display = ''; }} />}
               </div>
 
               <div className="crud-form-actions">
-                <button type="submit" className="crud-btn-primary" disabled={saving || uploadingImage}>
+                <button type="submit" className="crud-btn-primary" disabled={saving}>
                   {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear producto'}
                 </button>
                 <button type="button" className="crud-btn-ghost" onClick={closeForm}>Cancelar</button>

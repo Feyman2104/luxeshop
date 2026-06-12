@@ -7,16 +7,11 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { uploadImage } from './uploads';
 
 export const CATEGORIES_COLLECTION = 'categories';
 
 export function categoriesRef() {
   return collection(db, CATEGORIES_COLLECTION);
-}
-
-export async function uploadCategoryImage(file) {
-  return uploadImage(file, 'categories');
 }
 
 export async function createCategory({ name, description, imageUrl }) {

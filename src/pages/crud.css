@@ -138,6 +138,11 @@
   font-size: 0.8rem;
 }
 
+.crud-hint {
+  font-size: 0.74rem;
+  color: var(--text-muted, #606060);
+}
+
 .crud-fields-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
